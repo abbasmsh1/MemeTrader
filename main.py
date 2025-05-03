@@ -160,14 +160,15 @@ def main():
                 'financial_advice': previous_state.get('financial_advice', ''),
                 'risk_analysis': previous_state.get('risk_analysis', ''),
                 'trading_plan': previous_state.get('trading_plan', ''),
-                'executed_trades': previous_state.get('executed_trades', [])
+                'executed_trades': previous_state.get('executed_trades', []),
+                'strategy': agents.strategy.name
             }
             
             # Run trading workflow
             result = workflow.invoke(initial_state)
             
             # Save the updated state
-            state_manager.save_state(agents.strategy, result)
+            state_manager.save_state(agents.strategy.name, result)
             
             # Print results
             print("\nTrading Cycle Results:")

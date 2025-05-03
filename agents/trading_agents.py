@@ -191,15 +191,6 @@ class TradingAgents:
         ])
         
         # Trade Executor Prompt
-        example_json = r'''[
-  {
-    "type": "BUY",
-    "symbol": "BTCUSDT",
-    "amount": 0.001,
-    "reason": "Buying BTC based on positive market analysis"
-  }
-]'''
-
         self.executor_prompt = ChatPromptTemplate.from_messages([
             ("system", f"""You are a precise trade executor for cryptocurrency trading, specializing in {self.strategy.name}.
             Your role is to interpret the trading plan and execute trades exactly as specified.
@@ -211,8 +202,15 @@ class TradingAgents:
             - amount: The exact amount to trade
             - reason: A brief explanation of why this trade is being executed
             
-            Example response format (copy this exactly):
-            {example_json}
+            Example response format:
+            [
+              {{
+                "type": "BUY",
+                "symbol": "BTCUSDT",
+                "amount": 0.001,
+                "reason": "Buying BTC based on positive market analysis"
+              }}
+            ]
             
             {self.strategy.description}"""),
             ("human", """Trading Plan:
@@ -307,29 +305,56 @@ class TradingAgents:
             
             # Clean the response to ensure it's valid JSON
             execution_instructions = execution_instructions.strip()
+            
+            # Remove any markdown code block markers
+            execution_instructions = execution_instructions.replace('```json', '').replace('```', '')
+            
+            # Ensure it starts and ends with array brackets
             if not execution_instructions.startswith('['):
                 execution_instructions = '[' + execution_instructions
             if not execution_instructions.endswith(']'):
                 execution_instructions = execution_instructions + ']'
             
-            # Parse and validate trade instructions
-            trades = json.loads(execution_instructions)
+            # Try to parse the JSON
+            try:
+                trades = json.loads(execution_instructions)
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON: {str(e)}")
+                print(f"Raw instructions: {execution_instructions}")
+                # Try to fix common JSON issues
+                execution_instructions = execution_instructions.replace("'", '"')  # Replace single quotes with double quotes
+                execution_instructions = execution_instructions.replace('None', 'null')  # Replace Python None with JSON null
+                trades = json.loads(execution_instructions)
             
             # Validate each trade
             valid_trades = []
             for trade in trades:
-                if all(key in trade for key in ['type', 'symbol', 'amount', 'reason']):
-                    if trade['type'] in ['BUY', 'SELL']:
-                        if trade['symbol'] in state['current_prices']:
-                            if isinstance(trade['amount'], (int, float)) and trade['amount'] > 0:
-                                valid_trades.append(trade)
+                try:
+                    if not isinstance(trade, dict):
+                        print(f"Invalid trade format: {trade}")
+                        continue
+                        
+                    if all(key in trade for key in ['type', 'symbol', 'amount', 'reason']):
+                        if trade['type'] in ['BUY', 'SELL']:
+                            if trade['symbol'] in state['current_prices']:
+                                if isinstance(trade['amount'], (int, float)) and trade['amount'] > 0:
+                                    valid_trades.append(trade)
+                                else:
+                                    print(f"Invalid amount in trade: {trade}")
+                            else:
+                                print(f"Invalid symbol in trade: {trade}")
+                        else:
+                            print(f"Invalid trade type: {trade}")
+                    else:
+                        print(f"Missing required fields in trade: {trade}")
+                except Exception as e:
+                    print(f"Error validating trade: {str(e)}")
+                    print(f"Trade data: {trade}")
             
             state['executed_trades'].extend(valid_trades)
             
-        except json.JSONDecodeError as e:
-            print(f"Error parsing trade execution instructions: {str(e)}")
-            print(f"Raw instructions: {execution_instructions}")
         except Exception as e:
             print(f"Error in trade execution: {str(e)}")
+            print(f"Raw instructions: {execution_instructions}")
         
         return state 

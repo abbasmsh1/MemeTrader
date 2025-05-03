@@ -234,41 +234,46 @@ def main():
                     - P&L: {format_currency(trade.profit_loss) if trade.profit_loss is not None else '-'}
                     """)
             
-            # Latest Trade Execution
-            st.subheader("Latest Trade Execution")
+            # Create two columns for the trade execution section
+            col1, col2 = st.columns(2)
             
-            # Market Analysis
-            if 'market_analysis' in saved_state:
-                with st.expander("Market Analysis"):
-                    st.write(saved_state['market_analysis'])
+            with col1:
+                # Latest Trade Execution
+                st.subheader("Latest Trade Execution")
+                
+                # Market Analysis
+                if 'market_analysis' in saved_state:
+                    with st.expander("Market Analysis"):
+                        st.write(saved_state['market_analysis'])
+                
+                # Risk Assessment
+                if 'risk_assessment' in saved_state:
+                    with st.expander("Risk Assessment"):
+                        st.write(saved_state['risk_assessment'])
+                
+                # Financial Advice
+                if 'financial_advice' in saved_state:
+                    with st.expander("Financial Advice"):
+                        st.write(saved_state['financial_advice'])
             
-            # Risk Assessment
-            if 'risk_assessment' in saved_state:
-                with st.expander("Risk Assessment"):
-                    st.write(saved_state['risk_assessment'])
-            
-            # Financial Advice
-            if 'financial_advice' in saved_state:
-                with st.expander("Financial Advice"):
-                    st.write(saved_state['financial_advice'])
-            
-            # Risk Analysis
-            if 'risk_analysis' in saved_state:
-                with st.expander("Detailed Risk Analysis"):
-                    st.write(saved_state['risk_analysis'])
-            
-            # Trading Plan
-            if 'trading_plan' in saved_state:
-                with st.expander("Trading Plan"):
-                    st.write(saved_state['trading_plan'])
-            
-            # Executed Trades
-            if 'executed_trades' in saved_state and saved_state['executed_trades']:
-                with st.expander("Executed Trades"):
-                    for trade in saved_state['executed_trades']:
-                        st.write(f"**{trade['type']}** {trade['amount']} {trade['symbol']}")
-                        st.write(f"Reason: {trade['reason']}")
-                        st.write("---")
+            with col2:
+                # Risk Analysis
+                if 'risk_analysis' in saved_state:
+                    with st.expander("Detailed Risk Analysis"):
+                        st.write(saved_state['risk_analysis'])
+                
+                # Trading Plan
+                if 'trading_plan' in saved_state:
+                    with st.expander("Trading Plan"):
+                        st.write(saved_state['trading_plan'])
+                
+                # Executed Trades
+                if 'executed_trades' in saved_state and saved_state['executed_trades']:
+                    with st.expander("Executed Trades"):
+                        for trade in saved_state['executed_trades']:
+                            st.write(f"**{trade['type']}** {trade['amount']} {trade['symbol']}")
+                            st.write(f"Reason: {trade['reason']}")
+                            st.write("---")
         
         col_idx += 1
     
