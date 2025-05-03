@@ -82,10 +82,17 @@ def main():
     
     # Initialize components
     if 'wallets' not in st.session_state:
-        st.session_state.wallets = {
-            strategy: TestWallet(INITIAL_BALANCE, TARGET_BALANCE)
-            for strategy in STRATEGIES.keys()
-        }
+        # Get current BTC price first
+        binance = BinanceWrapper()
+        btc_price = binance.get_current_price('BTCUSDT')
+        
+        # Create wallets with initial BTC purchase
+        st.session_state.wallets = {}
+        for strategy in STRATEGIES.keys():
+            wallet = TestWallet(INITIAL_BALANCE, TARGET_BALANCE)
+            if hasattr(wallet, 'initialize_with_btc'):
+                wallet.initialize_with_btc(btc_price)
+            st.session_state.wallets[strategy] = wallet
     if 'binance' not in st.session_state:
         st.session_state.binance = BinanceWrapper()
     if 'agents' not in st.session_state:

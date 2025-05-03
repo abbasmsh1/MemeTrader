@@ -1,3 +1,4 @@
+import json
 from typing import Dict, List, TypedDict, Annotated
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_together import Together
@@ -89,28 +90,28 @@ class TradingAgents:
         ])
         
         # Trade Executor Prompt
+        example_json = r'''[
+  {
+    "type": "BUY",
+    "symbol": "BTCUSDT",
+    "amount": 0.001,
+    "reason": "Buying BTC based on positive market analysis"
+  }
+]'''
+
         self.executor_prompt = ChatPromptTemplate.from_messages([
             ("system", f"""You are a precise trade executor for cryptocurrency trading, specializing in {self.strategy.name}.
             Your role is to interpret the trading plan and execute trades exactly as specified.
             You must ensure all trades meet the minimum purchase amount of $5.
             
             You MUST respond with a valid JSON array of trade actions. Each action must have these exact fields:
-            {{
-                "type": "BUY" or "SELL",
-                "symbol": "TRADING_PAIR",
-                "amount": number,
-                "reason": "string"
-            }}
+            - type: "BUY" or "SELL"
+            - symbol: The trading pair (e.g., "BTCUSDT")
+            - amount: The exact amount to trade
+            - reason: A brief explanation of why this trade is being executed
             
-            Example response format:
-            [
-                {{
-                    "type": "BUY",
-                    "symbol": "BTCUSDT",
-                    "amount": 0.001,
-                    "reason": "Buying BTC based on positive market analysis"
-                }}
-            ]
+            Example response format (copy this exactly):
+            {example_json}
             
             {self.strategy.description}"""),
             ("human", """Trading Plan:
@@ -184,7 +185,6 @@ class TradingAgents:
                 execution_instructions = execution_instructions + ']'
             
             # Parse and validate trade instructions
-            import json
             trades = json.loads(execution_instructions)
             
             # Validate each trade

@@ -31,3 +31,8 @@ local_settings.py
 *.sqlite3
 
 *.venc
+./venc/*
+.venc/*
+.venc*
+venc/Lib/site-packages/jsonref.py
+venc/*

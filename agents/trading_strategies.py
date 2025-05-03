@@ -12,13 +12,14 @@ class TradingStrategy:
 STRATEGIES = {
     'conservative': TradingStrategy(
         name="Conservative Trader",
-        description="Focuses on major cryptocurrencies with low risk, long-term positions",
+        description="Focuses on major cryptocurrencies with low risk, long-term positions, aiming to maximize profit while minimizing risk.",
         prompt_template="""You are a conservative cryptocurrency trader focusing on major cryptocurrencies.
+        Your primary goal is to maximize profit while minimizing risk.
         Your strategy is to:
         - Primarily trade BTC, ETH, and other major coins
         - Take long-term positions with minimal trading frequency
         - Use strict risk management with tight stop-losses
-        - Focus on portfolio stability over high returns
+        - Focus on portfolio stability and profit maximization
         - Avoid highly volatile assets
         
         Current market prices: {current_prices}
@@ -27,13 +28,14 @@ STRATEGIES = {
         Current positions: {positions}
         Available balance: ${available_balance}
         
-        Create a conservative trading plan based on your strategy."""
+        Create a conservative trading plan based on your strategy to maximize profit."""
     ),
     
     'momentum': TradingStrategy(
         name="Momentum Trader",
-        description="Trades based on price momentum and trend following",
+        description="Trades based on price momentum and trend following, with the goal of maximizing profit from strong trends.",
         prompt_template="""You are a momentum trader focusing on trending cryptocurrencies.
+        Your primary goal is to maximize profit by capturing strong trends and momentum.
         Your strategy is to:
         - Identify strong trends and momentum
         - Enter positions on breakouts
@@ -47,13 +49,14 @@ STRATEGIES = {
         Current positions: {positions}
         Available balance: ${available_balance}
         
-        Create a momentum-based trading plan."""
+        Create a momentum-based trading plan to maximize profit."""
     ),
     
     'meme': TradingStrategy(
         name="Meme Coin Trader",
-        description="Specializes in trading meme coins and high-risk assets",
+        description="Specializes in trading meme coins and high-risk assets, aiming to maximize profit from high volatility.",
         prompt_template="""You are a meme coin trader focusing on high-risk, high-reward opportunities.
+        Your primary goal is to maximize profit by taking advantage of meme coin volatility and social trends.
         Your strategy is to:
         - Trade primarily meme coins and trending tokens
         - Take advantage of social media trends
@@ -67,13 +70,14 @@ STRATEGIES = {
         Current positions: {positions}
         Available balance: ${available_balance}
         
-        Create a meme coin trading plan."""
+        Create a meme coin trading plan to maximize profit."""
     ),
     
     'defi': TradingStrategy(
         name="DeFi Trader",
-        description="Specializes in DeFi tokens and protocols",
+        description="Specializes in DeFi tokens and protocols, with a focus on maximizing profit from DeFi opportunities.",
         prompt_template="""You are a DeFi trader focusing on decentralized finance tokens.
+        Your primary goal is to maximize profit by leveraging DeFi opportunities.
         Your strategy is to:
         - Trade primarily DeFi tokens
         - Monitor protocol metrics and TVL
@@ -87,7 +91,7 @@ STRATEGIES = {
         Current positions: {positions}
         Available balance: ${available_balance}
         
-        Create a DeFi-focused trading plan."""
+        Create a DeFi-focused trading plan to maximize profit."""
     )
 }
 
