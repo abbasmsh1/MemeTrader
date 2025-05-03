@@ -16,6 +16,7 @@ from config.config import (
     INITIAL_BALANCE,
     TARGET_BALANCE
 )
+from utils.state_manager import StateManager
 
 def create_price_chart(prices: dict, title: str):
     """Create a price chart using Plotly"""
@@ -93,13 +94,18 @@ def main():
             if hasattr(wallet, 'initialize_with_btc'):
                 wallet.initialize_with_btc(btc_price)
             st.session_state.wallets[strategy] = wallet
+    
     if 'binance' not in st.session_state:
         st.session_state.binance = BinanceWrapper()
+    
     if 'agents' not in st.session_state:
         st.session_state.agents = {
             strategy: TradingAgents(strategy)
             for strategy in STRATEGIES.keys()
         }
+    
+    if 'state_manager' not in st.session_state:
+        st.session_state.state_manager = StateManager()
     
     # Sidebar controls
     st.sidebar.header("Controls")
@@ -159,6 +165,9 @@ def main():
         portfolio_value = wallet.get_total_value(current_prices)
         progress = wallet.get_progress_to_target(current_prices)
         metrics = wallet.get_performance_summary()
+        
+        # Load saved state
+        saved_state = st.session_state.state_manager.load_state(strategy)
         
         with cols[col_idx]:
             st.markdown(f"### {STRATEGIES[strategy].name}")
@@ -224,6 +233,42 @@ def main():
                     - Total: {format_currency(trade.total)}
                     - P&L: {format_currency(trade.profit_loss) if trade.profit_loss is not None else '-'}
                     """)
+            
+            # Latest Trade Execution
+            st.subheader("Latest Trade Execution")
+            
+            # Market Analysis
+            if 'market_analysis' in saved_state:
+                with st.expander("Market Analysis"):
+                    st.write(saved_state['market_analysis'])
+            
+            # Risk Assessment
+            if 'risk_assessment' in saved_state:
+                with st.expander("Risk Assessment"):
+                    st.write(saved_state['risk_assessment'])
+            
+            # Financial Advice
+            if 'financial_advice' in saved_state:
+                with st.expander("Financial Advice"):
+                    st.write(saved_state['financial_advice'])
+            
+            # Risk Analysis
+            if 'risk_analysis' in saved_state:
+                with st.expander("Detailed Risk Analysis"):
+                    st.write(saved_state['risk_analysis'])
+            
+            # Trading Plan
+            if 'trading_plan' in saved_state:
+                with st.expander("Trading Plan"):
+                    st.write(saved_state['trading_plan'])
+            
+            # Executed Trades
+            if 'executed_trades' in saved_state and saved_state['executed_trades']:
+                with st.expander("Executed Trades"):
+                    for trade in saved_state['executed_trades']:
+                        st.write(f"**{trade['type']}** {trade['amount']} {trade['symbol']}")
+                        st.write(f"Reason: {trade['reason']}")
+                        st.write("---")
         
         col_idx += 1
     
@@ -240,6 +285,9 @@ def main():
             wallet = st.session_state.wallets[strategy]
             agents = st.session_state.agents[strategy]
             
+            # Load previous state
+            previous_state = st.session_state.state_manager.load_state(strategy)
+            
             # Create market state
             state = MarketState(
                 current_prices=current_prices,
@@ -247,18 +295,25 @@ def main():
                 progress_to_target=wallet.get_progress_to_target(current_prices),
                 positions=wallet.positions,
                 available_balance=wallet.balance,
-                market_analysis="",
-                risk_assessment="",
-                trading_plan="",
-                executed_trades=[],
+                market_analysis=previous_state.get('market_analysis', ''),
+                risk_assessment=previous_state.get('risk_assessment', ''),
+                financial_advice=previous_state.get('financial_advice', ''),
+                risk_analysis=previous_state.get('risk_analysis', ''),
+                trading_plan=previous_state.get('trading_plan', ''),
+                executed_trades=previous_state.get('executed_trades', []),
                 strategy=strategy
             )
             
             # Run trading workflow
             state = agents.analyze_market(state)
             state = agents.assess_risk(state)
+            state = agents.get_financial_advice(state)
+            state = agents.analyze_risk(state)
             state = agents.create_trading_plan(state)
             state = agents.execute_trades(state)
+            
+            # Save updated state
+            st.session_state.state_manager.save_state(strategy, state)
             
             # Execute trades
             if state['executed_trades']:

@@ -21,6 +21,8 @@ class MarketState(TypedDict):
     trading_plan: str
     executed_trades: List[Dict]
     strategy: str
+    financial_advice: str
+    risk_analysis: str
 
 class TradingAgents:
     def __init__(self, strategy: str = 'conservative'):
@@ -72,10 +74,103 @@ class TradingAgents:
             Please assess the risks and provide recommendations.""")
         ])
         
+        self.financial_advisor_prompt = ChatPromptTemplate.from_messages([
+            ("system", f"""You are a professional financial advisor specializing in cryptocurrency portfolios.
+            Your role is to provide high-level financial advice and portfolio optimization recommendations.
+            Consider:
+            - Portfolio diversification
+            - Risk-adjusted returns
+            - Market conditions
+            - Long-term financial goals
+            - Tax implications
+            - Liquidity needs
+            
+            {self.strategy.description}"""),
+            ("human", """Portfolio Overview:
+            Current value: ${portfolio_value}
+            Available balance: ${available_balance}
+            Current positions: {positions}
+            
+            Market Analysis:
+            {market_analysis}
+            
+            Risk Assessment:
+            {risk_assessment}
+            
+            Please provide financial advice and portfolio optimization recommendations.""")
+        ])
+        
+        self.risk_analyzer_prompt = ChatPromptTemplate.from_messages([
+            ("system", f"""You are a detailed risk analyzer for cryptocurrency portfolios.
+            Your role is to perform comprehensive risk analysis and portfolio risk assessment.
+            Analyze:
+            - Portfolio concentration risk
+            - Market correlation risk
+            - Volatility risk
+            - Liquidity risk
+            - Counterparty risk
+            - Regulatory risk
+            - Technical risk
+            
+            {self.strategy.description}"""),
+            ("human", """Portfolio Overview:
+            Current value: ${portfolio_value}
+            Available balance: ${available_balance}
+            Current positions: {positions}
+            
+            Market Analysis:
+            {market_analysis}
+            
+            Risk Assessment:
+            {risk_assessment}
+            
+            Financial Advice:
+            {financial_advice}
+            
+            Please perform a detailed risk analysis of the portfolio.""")
+        ])
+        
         self.trader_prompt = ChatPromptTemplate.from_messages([
             ("system", f"""You are a professional cryptocurrency trader specializing in {self.strategy.name}.
-            Create a detailed trading plan based on market analysis and risk assessment.
-            Specify exact amounts to buy or sell for each cryptocurrency.
+            Create a detailed trading plan based on comprehensive market analysis, risk assessments, and financial advice.
+            Consider all the following information in your trading decisions:
+            
+            1. Market Analysis:
+            - Current market conditions and trends
+            - Support/resistance levels
+            - Market sentiment
+            - Trading opportunities
+            
+            2. Risk Assessment:
+            - Market volatility
+            - Portfolio exposure
+            - Risk-reward ratios
+            - Risk management recommendations
+            
+            3. Financial Advice:
+            - Portfolio diversification needs
+            - Risk-adjusted return targets
+            - Long-term financial goals
+            - Tax implications
+            - Liquidity requirements
+            
+            4. Risk Analysis:
+            - Portfolio concentration risks
+            - Market correlation risks
+            - Volatility risks
+            - Liquidity risks
+            - Counterparty risks
+            - Regulatory risks
+            - Technical risks
+            
+            Your trading plan should:
+            1. Align with the {self.strategy.name} strategy
+            2. Consider all risk factors and financial advice
+            3. Specify exact amounts to buy or sell for each cryptocurrency
+            4. Include clear reasoning for each trade
+            5. Ensure trades meet minimum purchase requirements
+            6. Balance risk and reward appropriately
+            
             {self.strategy.description}"""),
             ("human", """Market Analysis:
             {market_analysis}
@@ -83,10 +178,16 @@ class TradingAgents:
             Risk Assessment:
             {risk_assessment}
             
+            Financial Advice:
+            {financial_advice}
+            
+            Risk Analysis:
+            {risk_analysis}
+            
             Current positions: {positions}
             Available balance: ${available_balance}
             
-            Please create a detailed trading plan with specific actions.""")
+            Please create a detailed trading plan that considers all the above information.""")
         ])
         
         # Trade Executor Prompt
@@ -129,6 +230,8 @@ class TradingAgents:
         # Create agent chains
         self.market_analyst_chain = self.market_analyst_prompt | self.llm | StrOutputParser()
         self.risk_manager_chain = self.risk_manager_prompt | self.llm | StrOutputParser()
+        self.financial_advisor_chain = self.financial_advisor_prompt | self.llm | StrOutputParser()
+        self.risk_analyzer_chain = self.risk_analyzer_prompt | self.llm | StrOutputParser()
         self.trader_chain = self.trader_prompt | self.llm | StrOutputParser()
         self.executor_chain = self.executor_prompt | self.llm | StrOutputParser()
     
@@ -152,11 +255,36 @@ class TradingAgents:
         })
         return state
     
+    def get_financial_advice(self, state: MarketState) -> MarketState:
+        """Get financial advice and portfolio recommendations"""
+        state['financial_advice'] = self.financial_advisor_chain.invoke({
+            'portfolio_value': state['portfolio_value'],
+            'available_balance': state['available_balance'],
+            'positions': state['positions'],
+            'market_analysis': state['market_analysis'],
+            'risk_assessment': state['risk_assessment']
+        })
+        return state
+    
+    def analyze_risk(self, state: MarketState) -> MarketState:
+        """Perform detailed risk analysis"""
+        state['risk_analysis'] = self.risk_analyzer_chain.invoke({
+            'portfolio_value': state['portfolio_value'],
+            'available_balance': state['available_balance'],
+            'positions': state['positions'],
+            'market_analysis': state['market_analysis'],
+            'risk_assessment': state['risk_assessment'],
+            'financial_advice': state['financial_advice']
+        })
+        return state
+    
     def create_trading_plan(self, state: MarketState) -> MarketState:
         """Create trading plan"""
         state['trading_plan'] = self.trader_chain.invoke({
             'market_analysis': state['market_analysis'],
             'risk_assessment': state['risk_assessment'],
+            'financial_advice': state['financial_advice'],
+            'risk_analysis': state['risk_analysis'],
             'positions': state['positions'],
             'available_balance': state['available_balance']
         })

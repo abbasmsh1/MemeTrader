@@ -19,29 +19,36 @@ from config.config import (
 import time
 from datetime import datetime, timedelta
 import re
+from utils.state_manager import StateManager
 
-def create_trading_workflow(trading_agents: TradingAgents) -> Graph:
+def create_trading_workflow(trading_agents: TradingAgents, state_manager: StateManager) -> Graph:
     """Create the trading workflow using LangGraph"""
     
-    # Define the workflow
+    # Create workflow
     workflow = StateGraph(MarketState)
     
-    # Add nodes for each agent
+    # Add nodes
     workflow.add_node("market_analyst", trading_agents.analyze_market)
     workflow.add_node("risk_manager", trading_agents.assess_risk)
+    workflow.add_node("financial_advisor", trading_agents.get_financial_advice)
+    workflow.add_node("risk_analyzer", trading_agents.analyze_risk)
     workflow.add_node("trader", trading_agents.create_trading_plan)
     workflow.add_node("executor", trading_agents.execute_trades)
     
-    # Define the edges (workflow)
+    # Add edges
     workflow.add_edge("market_analyst", "risk_manager")
-    workflow.add_edge("risk_manager", "trader")
+    workflow.add_edge("risk_manager", "financial_advisor")
+    workflow.add_edge("financial_advisor", "risk_analyzer")
+    workflow.add_edge("risk_analyzer", "trader")
     workflow.add_edge("trader", "executor")
     
-    # Set the entry point
+    # Set entry point
     workflow.set_entry_point("market_analyst")
     
-    # Compile the workflow
-    return workflow.compile()
+    # Compile workflow
+    app = workflow.compile()
+    
+    return app
 
 def parse_trading_plan(plan: str, current_prices: Dict[str, float]) -> List[Dict]:
     """Parse the trading plan into executable actions"""
@@ -113,13 +120,14 @@ def main():
     binance = BinanceWrapper()
     wallet = TestWallet(INITIAL_BALANCE, TARGET_BALANCE)
     agents = TradingAgents()
+    state_manager = StateManager()
     
     # Initialize wallet with BTC purchase
     btc_price = binance.get_current_price('BTCUSDT')
     wallet.initialize_with_btc(btc_price)
     
     # Create trading workflow
-    workflow = create_trading_workflow(agents)
+    workflow = create_trading_workflow(agents, state_manager)
     
     print(f"Starting trading with initial balance: ${INITIAL_BALANCE}")
     print(f"Target balance: ${TARGET_BALANCE}")
@@ -137,6 +145,9 @@ def main():
             portfolio_value = wallet.get_total_value(current_prices)
             progress = wallet.get_progress_to_target(current_prices)
             
+            # Load previous state if exists
+            previous_state = state_manager.load_state(agents.strategy)
+            
             # Initialize workflow state
             initial_state = {
                 'current_prices': current_prices,
@@ -144,14 +155,19 @@ def main():
                 'progress_to_target': progress,
                 'positions': wallet.positions,
                 'available_balance': wallet.balance,
-                'market_analysis': '',
-                'risk_assessment': '',
-                'trading_plan': '',
-                'executed_trades': []
+                'market_analysis': previous_state.get('market_analysis', ''),
+                'risk_assessment': previous_state.get('risk_assessment', ''),
+                'financial_advice': previous_state.get('financial_advice', ''),
+                'risk_analysis': previous_state.get('risk_analysis', ''),
+                'trading_plan': previous_state.get('trading_plan', ''),
+                'executed_trades': previous_state.get('executed_trades', [])
             }
             
             # Run trading workflow
             result = workflow.invoke(initial_state)
+            
+            # Save the updated state
+            state_manager.save_state(agents.strategy, result)
             
             # Print results
             print("\nTrading Cycle Results:")
@@ -161,6 +177,10 @@ def main():
             print(result['market_analysis'])
             print("\nRisk Assessment:")
             print(result['risk_assessment'])
+            print("\nFinancial Advice:")
+            print(result['financial_advice'])
+            print("\nRisk Analysis:")
+            print(result['risk_analysis'])
             print("\nTrading Plan:")
             print(result['trading_plan'])
             
