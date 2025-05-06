@@ -8,5 +8,5 @@ class TogetherLLM(LLM):
             api_key=TOGETHER_API_KEY,
             provider="together_ai",  # Specify the provider
             temperature=0.7,
-            max_tokens=2000
+            max_tokens=2048
         ) 

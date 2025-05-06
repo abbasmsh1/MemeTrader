@@ -13,7 +13,7 @@ TOGETHER_API_KEY = os.getenv('TOGETHER_API_KEY')
 TOGETHER_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"  # Updated model identifier
 
 # Trading Configuration
-INITIAL_BALANCE = 1000  # Starting balance in USDT
+INITIAL_BALANCE = 20  # Starting balance in USDT
 TARGET_BALANCE = 100000  # Target balance in USDT (100x growth)
 MAX_RISK_PER_TRADE = 0.1  # Maximum 10% of portfolio per trade
 STOP_LOSS_PERCENTAGE = 0.05  # 5% stop loss

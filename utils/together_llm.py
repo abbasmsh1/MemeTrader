@@ -6,7 +6,7 @@ from config.config import TOGETHER_API_KEY, TOGETHER_MODEL
 class TogetherLLM(LLM):
     model: str = TOGETHER_MODEL
     temperature: float = 0.7
-    max_tokens: int = 2000
+    max_tokens: int = 2048
     
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)

@@ -10,7 +10,7 @@ class HistoricalKlinesTool(BaseModel):
     description: str = "Get historical candlestick data for a cryptocurrency symbol"
     binance: BinanceWrapper = Field(default=None, exclude=True)
     
-    def run(self, symbol: str, interval: str = "1h", lookback_days: int = 7) -> Optional[Dict[str, Any]]:
+    def run(self, symbol: str, interval: str = "1h", lookback_days: int = 30) -> Optional[Dict[str, Any]]:
         df = self.binance.get_historical_klines(symbol, interval, lookback_days)
         if df is not None:
             return df.to_dict()
