@@ -3,95 +3,58 @@ from langchain_core.prompts import ChatPromptTemplate
 from config.config import AGENT_TEMPERATURE, AGENT_MODEL
 
 class TradingStrategy:
-    def __init__(self, name: str, description: str, prompt_template: str):
+    """Trading strategy configuration"""
+    def __init__(self, name: str, description: str, risk_level: str, target_return: float):
         self.name = name
         self.description = description
-        self.prompt_template = prompt_template
+        self.risk_level = risk_level
+        self.target_return = target_return
 
-# Define different trading strategies
+# Define trading strategies
 STRATEGIES = {
+    'aggressive': TradingStrategy(
+        name="Maximum Returns",
+        description="""Aggressive strategy focused on maximizing returns through high-risk, high-reward trades.
+        Key characteristics:
+        - Takes larger positions in volatile assets
+        - Uses leverage when available
+        - Focuses on momentum and trend following
+        - Quick entry and exit from positions
+        - Embraces meme coins and high-volatility tokens
+        - Uses social sentiment for trading signals
+        - Maintains minimal USDT reserves
+        - Targets 1000%+ returns on successful trades
+        - Aims for 100x portfolio growth""",
+        risk_level="high",
+        target_return=1000.0
+    ),
+    'balanced': TradingStrategy(
+        name="Balanced Growth",
+        description="""Balanced strategy that combines aggressive and conservative approaches.
+        Key characteristics:
+        - Diversifies across multiple asset classes
+        - Takes calculated risks on promising projects
+        - Maintains moderate position sizes
+        - Uses both technical and fundamental analysis
+        - Keeps some USDT for opportunities
+        - Targets 500%+ returns on successful trades
+        - Aims for 50x portfolio growth""",
+        risk_level="medium",
+        target_return=500.0
+    ),
     'conservative': TradingStrategy(
-        name="Conservative Trader",
-        description="Focuses on major cryptocurrencies with low risk, long-term positions, aiming to maximize profit while minimizing risk.",
-        prompt_template="""You are a conservative cryptocurrency trader focusing on major cryptocurrencies.
-        Your primary goal is to maximize profit while minimizing risk.
-        Your strategy is to:
-        - Primarily trade BTC, ETH, and other major coins
-        - Take long-term positions with minimal trading frequency
-        - Use strict risk management with tight stop-losses
-        - Focus on portfolio stability and profit maximization
-        - Avoid highly volatile assets
-        
-        Current market prices: {current_prices}
-        Portfolio value: ${portfolio_value}
-        Progress to target: {progress_to_target}%
-        Current positions: {positions}
-        Available balance: ${available_balance}
-        
-        Create a conservative trading plan based on your strategy to maximize profit."""
-    ),
-    
-    'momentum': TradingStrategy(
-        name="Momentum Trader",
-        description="Trades based on price momentum and trend following, with the goal of maximizing profit from strong trends.",
-        prompt_template="""You are a momentum trader focusing on trending cryptocurrencies.
-        Your primary goal is to maximize profit by capturing strong trends and momentum.
-        Your strategy is to:
-        - Identify strong trends and momentum
-        - Enter positions on breakouts
-        - Use trailing stop-losses
-        - Take profits on momentum exhaustion
-        - Trade both major and altcoins based on momentum
-        
-        Current market prices: {current_prices}
-        Portfolio value: ${portfolio_value}
-        Progress to target: {progress_to_target}%
-        Current positions: {positions}
-        Available balance: ${available_balance}
-        
-        Create a momentum-based trading plan to maximize profit."""
-    ),
-    
-    'meme': TradingStrategy(
-        name="Meme Coin Trader",
-        description="Specializes in trading meme coins and high-risk assets, aiming to maximize profit from high volatility.",
-        prompt_template="""You are a meme coin trader focusing on high-risk, high-reward opportunities.
-        Your primary goal is to maximize profit by taking advantage of meme coin volatility and social trends.
-        Your strategy is to:
-        - Trade primarily meme coins and trending tokens
-        - Take advantage of social media trends
-        - Use wider stop-losses due to higher volatility
-        - Take quick profits on momentum spikes
-        - Monitor social sentiment for entry/exit points
-        
-        Current market prices: {current_prices}
-        Portfolio value: ${portfolio_value}
-        Progress to target: {progress_to_target}%
-        Current positions: {positions}
-        Available balance: ${available_balance}
-        
-        Create a meme coin trading plan to maximize profit."""
-    ),
-    
-    'defi': TradingStrategy(
-        name="DeFi Trader",
-        description="Specializes in DeFi tokens and protocols, with a focus on maximizing profit from DeFi opportunities.",
-        prompt_template="""You are a DeFi trader focusing on decentralized finance tokens.
-        Your primary goal is to maximize profit by leveraging DeFi opportunities.
-        Your strategy is to:
-        - Trade primarily DeFi tokens
-        - Monitor protocol metrics and TVL
-        - Consider yield farming opportunities
-        - Balance between established and new DeFi projects
-        - Use technical analysis for entry/exit points
-        
-        Current market prices: {current_prices}
-        Portfolio value: ${portfolio_value}
-        Progress to target: {progress_to_target}%
-        Current positions: {positions}
-        Available balance: ${available_balance}
-        
-        Create a DeFi-focused trading plan to maximize profit."""
+        name="Safe Growth",
+        description="""Conservative strategy focused on steady growth with controlled risk.
+        Key characteristics:
+        - Focuses on established cryptocurrencies
+        - Takes smaller, well-researched positions
+        - Uses strict stop-losses
+        - Emphasizes fundamental analysis
+        - Maintains higher USDT reserves
+        - Targets 200%+ returns on successful trades
+        - Aims for 20x portfolio growth""",
+        risk_level="low",
+        target_return=200.0
     )
 }
 

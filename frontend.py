@@ -310,12 +310,7 @@ def main():
             )
             
             # Run trading workflow
-            state = agents.analyze_market(state)
-            state = agents.assess_risk(state)
-            state = agents.get_financial_advice(state)
-            state = agents.analyze_risk(state)
-            state = agents.create_trading_plan(state)
-            state = agents.execute_trades(state)
+            state = agents.run_trading_workflow(state)
             
             # Save updated state
             st.session_state.state_manager.save_state(strategy, state)
